@@ -1,0 +1,585 @@
+---
+title: "Analysis Men's NCAA Wrestling"
+author: Angel Legrand
+format: html
+css: wrestling-background.css
+execute:
+  echo: false
+  message: false
+  warning: false
+---
+
+I plan to make a website that gathers data from the NCAA website to help people find out more about the statistics of a team winning and takedown chances. 
+
+## Top 10 teams by year
+
+Each point shows a team's championship points for that year, with the school logo and team name. Hover over a point for the coach and exact values. Click a logo to open the official NCAA brackets/results for that season; for 2015–2021, the link opens the NCAA championship history archive. Rankings and points are from the [NCAA Division I wrestling records](https://s3.amazonaws.com/fs.ncaa.org/Docs/stats/wrestling_champs_records/D1.pdf); logos are loaded from official athletics sites and their image CDNs.
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(plotly)
+
+coach_lookup <- c(
+  "Penn State" = "Cael Sanderson",
+  "Nebraska" = "Mark Manning",
+  "Oklahoma State" = "David Taylor",
+  "Iowa" = "Tom Brands",
+  "Minnesota" = "Brandon Eggum",
+  "Ohio State" = "Tom Ryan",
+  "Cornell" = "Mike Grey",
+  "NC State" = "Pat Popolizio",
+  "Northern Iowa" = "Doug Schwab",
+  "Illinois" = "Mike Poeta",
+  "Michigan" = "Sean Bormet",
+  "Virginia Tech" = "Tony Robie",
+  "Arizona State" = "Zahid Valencia",
+  "Missouri" = "Brian Smith",
+  "Rutgers" = "Scott Goodale",
+  "Northwestern" = "Matt Nelson",
+  "Maria" = "Not verified"
+)
+
+team_results <- tribble(
+  ~year, ~rank, ~team, ~points,
+  2015, 1, "Ohio State", 102,
+  2015, 2, "Iowa", 84,
+  2015, 3, "Edinboro", 75.5,
+  2015, 4, "Missouri", 73.5,
+  2015, 5, "Cornell", 71.5,
+  2015, 6, "Penn State", 67.5,
+  2015, 7, "Oklahoma State", 65,
+  2015, 8, "Minnesota", 59.5,
+  2015, 9, "Nebraska", 59,
+  2015, 10, "Virginia Tech", 56,
+  2016, 1, "Penn State", 123,
+  2016, 2, "Oklahoma State", 97.5,
+  2016, 3, "Ohio State", 86,
+  2016, 4, "Virginia Tech", 82,
+  2016, 5, "Iowa", 81,
+  2016, 6, "Missouri", 74.5,
+  2016, 7, "Cornell", 67,
+  2016, 8, "Nebraska", 58,
+  2016, 9, "Illinois", 50.5,
+  2016, 9, "Michigan", 50.5,
+  2017, 1, "Penn State", 146.5,
+  2017, 2, "Ohio State", 110,
+  2017, 3, "Oklahoma State", 103,
+  2017, 4, "Iowa", 97,
+  2017, 5, "Missouri", 86.5,
+  2017, 6, "Virginia Tech", 63.5,
+  2017, 7, "Minnesota", 62.5,
+  2017, 8, "Cornell", 60.5,
+  2017, 9, "Nebraska", 59.5,
+  2017, 10, "Michigan", 47.5,
+  2018, 1, "Penn State", 141.5,
+  2018, 2, "Ohio State", 133.5,
+  2018, 3, "Iowa", 97,
+  2018, 4, "Michigan", 80,
+  2018, 4, "NC State", 80,
+  2018, 6, "Missouri", 61.5,
+  2018, 7, "Cornell", 48,
+  2018, 8, "Virginia Tech", 47.5,
+  2018, 9, "Nebraska", 47,
+  2018, 10, "Arizona State", 43,
+  2019, 1, "Penn State", 137.5,
+  2019, 2, "Ohio State", 96.5,
+  2019, 3, "Oklahoma State", 84,
+  2019, 4, "Iowa", 76,
+  2019, 5, "Michigan", 62.5,
+  2019, 6, "Missouri", 62,
+  2019, 7, "Cornell", 59.5,
+  2019, 8, "Minnesota", 53.5,
+  2019, 9, "Rutgers", 51.5,
+  2019, 10, "Nebraska", 51,
+  2021, 1, "Iowa", 129,
+  2021, 2, "Penn State", 113.5,
+  2021, 3, "Oklahoma State", 99.5,
+  2021, 4, "Arizona State", 74,
+  2021, 5, "Michigan", 69,
+  2021, 6, "NC State", 68,
+  2021, 7, "Minnesota", 64,
+  2021, 7, "Missouri", 64,
+  2021, 9, "Ohio State", 46.5,
+  2021, 10, "Northwestern", 45,
+  2022, 1, "Penn State", 131.5,
+  2022, 2, "Michigan", 95,
+  2022, 3, "Iowa", 74,
+  2022, 4, "Arizona State", 66.5,
+  2022, 5, "Nebraska", 59.5,
+  2022, 6, "Northwestern", 57.5,
+  2022, 7, "Cornell", 54.5,
+  2022, 8, "Virginia Tech", 52.5,
+  2022, 9, "Missouri", 49.5,
+  2022, 10, "NC State", 49,
+  2023, 1, "Penn State", 137.5,
+  2023, 2, "Iowa", 82.5,
+  2023, 3, "Cornell", 76.5,
+  2023, 4, "Ohio State", 70.5,
+  2023, 5, "Missouri", 64.5,
+  2023, 6, "Michigan", 58.5,
+  2023, 7, "Arizona State", 55,
+  2023, 8, "Nebraska", 54,
+  2023, 9, "Virginia Tech", 49,
+  2023, 10, "NC State", 48,
+  2024, 1, "Penn State", 172.5,
+  2024, 2, "Cornell", 72.5,
+  2024, 3, "Michigan", 71,
+  2024, 4, "Iowa State", 68.5,
+  2024, 5, "Iowa", 67,
+  2024, 6, "Arizona State", 64.5,
+  2024, 7, "Virginia Tech", 64,
+  2024, 8, "Ohio State", 62,
+  2024, 9, "Nebraska", 60.5,
+  2024, 10, "Oklahoma State", 56,
+  2025, 1, "Penn State", 177,
+  2025, 2, "Nebraska", 117,
+  2025, 3, "Oklahoma State", 107.5,
+  2025, 4, "Iowa", 81,
+  2025, 5, "Minnesota", 51.5,
+  2025, 5, "Ohio State", 51.5,
+  2025, 7, "Cornell", 50,
+  2025, 8, "NC State", 46.5,
+  2025, 9, "Northern Iowa", 45.5,
+  2025, 10, "Illinois", 44.5
+) |>
+  mutate(
+    coach = coalesce(
+      coach_lookup[team],
+      "Not verified"
+    )
+  )
+
+logo_lookup <- c(
+  "Ohio State" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/ohiostatebuckeyes.com/images/logos/site/site.png",
+  "Iowa" = "https://hawkeyesports.com/imgproxy/lqIqR-KX-uiWAl2iptdTd_w4XZt92_RhaVI7wm5Rmjw/rs:fit:1980:0:0:0/g:ce:0:0/q:90/aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL2hhd2tleWVzcG9ydHMtcHJvZC8yMDIxLzAyL2NmNTQwOTkwLWxvZ28tZTE3MjI4NzU3NTYxNzgucG5n.png",
+  "Edinboro" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/edinboro.sidearmsports.com/images/logos/site/site.png",
+  "Missouri" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/mutigers.com/images/logos/site/site.png",
+  "Cornell" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/cornellbigred.com/images/logos/site/site.png",
+  "Penn State" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/gopsusports.com/images/logos/site/site.png",
+  "Oklahoma State" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/okstate.com/images/logos/site/site.png",
+  "Minnesota" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/gophersports.com/images/logos/site/site.png",
+  "Nebraska" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/huskers.com/images/logos/site/site.png",
+  "Virginia Tech" = "https://hokiesports.com/imgproxy/0CdA1rELWWEYF1dQeW2gvkBsewBKRQRr6Aer2GkXRBY/rs:fit:1980:0:0:0/g:ce:0:0/q:90/aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL3ZpcmdpbmlhdGVjaC1wcm9kLzIwMjQvMDMvMjAvTnV4UWtxUXQzd011b1hsVGJ0eG0yWkZ1cHFFWDBBSmZ3eW1ZWXpTWi5wbmc.ico",
+  "Illinois" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/fightingillini.com/images/logos/site/site.png",
+  "Michigan" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/mgoblue.com/images/logos/site/site.png",
+  "NC State" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/gopack.com/images/logos/site/site.png",
+  "Arizona State" = "https://sundevils.com/sites/default/files/favicon_0.ico",
+  "Rutgers" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/scarletknights.com/images/logos/site/site.png",
+  "Northwestern" = "https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/nusports.com/images/logos/site/site.png",
+  "Iowa State" = "https://cyclones.com/images/logos/site/site.png",
+  "Northern Iowa" = "https://unipanthers.com/images/logos/site/site.png"
+)
+
+ncaa_results_url <- c(
+  "2025" = "https://www.ncaa.com/live-updates/wrestling/d1/2025-ncaa-wrestling-championships-schedule-brackets-results",
+  "2024" = "https://www.ncaa.com/live-updates/wrestling/d1/2024-ncaa-wrestling-championships-schedule-brackets-results",
+  "2023" = "https://www.ncaa.com/live-updates/wrestling/d1/penn-state-wins-2023-di-mens-ncaa-wrestling-team-title",
+  "2022" = "https://www.ncaa.com/live-updates/wrestling/d1/penn-state-wins-2022-ncaa-wrestling-team-title"
+)
+
+logo_positions <- team_results |>
+  mutate(logo = unname(logo_lookup[team])) |>
+  mutate(
+    results_url = coalesce(
+      unname(ncaa_results_url[as.character(year)]),
+      "https://www.ncaa.com/history/wrestling-men/d1"
+    )
+  ) |>
+  group_by(year, points) |>
+  mutate(logo_x = year + (row_number() - (n() + 1) / 2) * 0.24) |>
+  ungroup()
+
+logo_images <- logo_positions |>
+  select(year, rank, team, points, coach, logo, logo_x) |>
+  pmap(\(year, rank, team, points, coach, logo, logo_x) {
+    list(
+      source = logo,
+      x = logo_x,
+      y = points,
+      xref = "x",
+      yref = "y",
+      sizex = 0.2,
+      sizey = 4,
+      xanchor = "center",
+      yanchor = "middle",
+      sizing = "contain",
+      layer = "above"
+    )
+  })
+
+team_results |>
+  plot_ly(
+    x = ~year,
+    y = ~points,
+    color = ~team,
+    type = "scatter",
+    mode = "markers+text",
+    marker = list(size = 17, opacity = 0.8),
+    text = ~team,
+    textposition = "top right",
+    customdata = ~coach,
+    hovertemplate = "%{text}<br>Coach: %{customdata}<br>Year: %{x}<br>Points: %{y}<extra></extra>",
+    showlegend = TRUE
+  ) |>
+  layout(
+    title = "Top 10 NCAA Division I team points by year (2015–2025)",
+    xaxis = list(
+      title = "Year",
+      tickmode = "array",
+      tickvals = 2015:2025,
+      range = c(2014.5, 2025.5)
+    ),
+    yaxis = list(title = "Championship points"),
+    legend = list(title = list(text = "Team")),
+    height = 950,
+    images = logo_images
+  ) |>
+  add_trace(
+    data = logo_positions,
+    x = ~logo_x,
+    y = ~points,
+    text = ~paste(team, year, sep = " — "),
+    customdata = ~results_url,
+    type = "scatter",
+    mode = "markers",
+    marker = list(size = 44, color = "rgba(0, 0, 0, 0.01)"),
+    hovertemplate = paste(
+      "<b>%{text}</b><br>",
+      "Click to open official NCAA brackets/results",
+      "<extra></extra>"
+    ),
+    name = "NCAA results link",
+    showlegend = FALSE
+  ) |>
+  htmlwidgets::onRender("
+    function(el, x) {
+      el.on('plotly_click', function(eventData) {
+        var point = eventData.points[0];
+        if (point.data.name === 'NCAA results link') {
+          window.open(point.customdata, '_blank', 'noopener');
+        }
+      });
+    }
+  ")
+```
+
+## Wrestler wins and losses by weight
+
+Choose a championship year and weight class to compare every wrestler in the
+NCAA bracket by their season wins and losses. Click a point to view the
+wrestler's record and links to a bio search and the official bracket. The
+bracket data for 2022 and 2023–2025 are included; the 2020 tournament was
+canceled. The 2022 records are from the
+[official NCAA bracket PDF](https://www.ncaa.com/sites/default/files/public/files/2022-03/Brackets%20-%20Session%206.pdf).
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+wrestler_records <- readr::read_csv(
+  "ncaa_wrestler_records.csv",
+  show_col_types = FALSE
+)
+
+years <- sort(unique(wrestler_records$year), decreasing = TRUE)
+weights <- sort(unique(wrestler_records$weight))
+default_year <- years[1]
+default_weight <- weights[1]
+wrestler_chart <- plot_ly()
+
+for (current_year in years) {
+  for (current_weight in weights) {
+    weight_data <- wrestler_records |>
+      filter(year == current_year, weight == current_weight) |>
+      mutate(
+        bio_url = paste0(
+          "https://en.wikipedia.org/w/index.php?search=",
+          utils::URLencode(wrestler, reserved = TRUE)
+        ),
+        bio = paste0(
+          wrestler, " (", school_code, ") — ", current_year, ", ",
+          current_weight, " lb. Season record: ", wins, "-", losses, "."
+        ),
+        click_data = paste(bio, bio_url, source, sep = "|")
+      )
+
+    wrestler_chart <- wrestler_chart |>
+      add_trace(
+        x = weight_data$wins,
+        y = weight_data$losses,
+        type = "scatter",
+        mode = "markers",
+        text = weight_data$wrestler,
+        customdata = weight_data$click_data,
+        marker = list(size = 9, color = "#2c7fb8", opacity = 0.75),
+        hovertemplate = paste(
+          "<b>%{text}</b> (", current_weight, " lb)<br>",
+          "Season record: %{x} wins, %{y} losses<br>",
+          "Click for wrestler details",
+          "<extra></extra>"
+        ),
+        name = paste(current_year, current_weight, "lb"),
+        visible = current_year == default_year && current_weight == default_weight,
+        showlegend = FALSE
+      )
+  }
+}
+
+htmltools::tags$div(
+  class = "wrestler-chart-controls",
+  htmltools::tags$label(
+    `for` = "wrestler-year",
+    htmltools::tags$span("Championship year"),
+    htmltools::tags$select(
+      id = "wrestler-year",
+      lapply(years, \(year) {
+        htmltools::tags$option(
+          value = year,
+          selected = year == default_year,
+          year
+        )
+      })
+    )
+  ),
+  htmltools::tags$span(" "),
+  htmltools::tags$label(
+    `for` = "wrestler-weight",
+    htmltools::tags$span("Weight class"),
+    htmltools::tags$select(
+      id = "wrestler-weight",
+      lapply(weights, \(weight) {
+        htmltools::tags$option(
+          value = weight,
+          selected = weight == default_weight,
+          paste(weight, "lb")
+        )
+      })
+    )
+  )
+)
+
+htmltools::tags$div(
+  id = "wrestler-bio",
+  style = paste(
+    "display:none; margin: 0.75rem 0; padding: 1rem;",
+    "border-left: 4px solid #2c7fb8; background: #f3f7fa;"
+  ),
+  htmltools::tags$strong(id = "wrestler-bio-title"),
+  htmltools::tags$p(id = "wrestler-bio-details"),
+  htmltools::tags$a(
+    id = "wrestler-bio-link",
+    href = "#",
+    target = "_blank",
+    rel = "noopener",
+    "Find wrestler bio"
+  ),
+  htmltools::tags$span(" · "),
+  htmltools::tags$a(
+    id = "wrestler-bio-source",
+    href = "#",
+    target = "_blank",
+    rel = "noopener",
+    "Open official NCAA bracket"
+  )
+)
+
+wrestler_chart |>
+  layout(
+    title = paste0("NCAA participants — ", default_year, ", ", default_weight, " lb"),
+    xaxis = list(title = "Season wins", rangemode = "tozero"),
+    yaxis = list(title = "Season losses", rangemode = "tozero"),
+    height = 600
+  ) |>
+  htmlwidgets::onRender("
+    function(el, x) {
+      var yearSelect = document.getElementById('wrestler-year');
+      var weightSelect = document.getElementById('wrestler-weight');
+      function updateChart() {
+        var selectedYear = yearSelect.value;
+        var selectedWeight = weightSelect.value;
+        var visibility = el.data.map(function(trace) {
+          return trace.name === selectedYear + ' ' + selectedWeight + ' lb';
+        });
+        Plotly.restyle(el, {visible: visibility});
+        Plotly.relayout(el, {
+          'title.text': 'NCAA participants — ' + selectedYear + ', ' + selectedWeight + ' lb'
+        });
+      }
+      yearSelect.addEventListener('change', updateChart);
+      weightSelect.addEventListener('change', updateChart);
+      el.on('plotly_click', function(eventData) {
+        var point = eventData.points[0];
+        var details = point.data.customdata[point.pointNumber].split('|');
+        var panel = document.getElementById('wrestler-bio');
+        document.getElementById('wrestler-bio-title').textContent = point.text;
+        document.getElementById('wrestler-bio-details').textContent = details[0];
+        document.getElementById('wrestler-bio-link').href = details[1];
+        document.getElementById('wrestler-bio-source').href = details[2];
+        panel.style.display = 'block';
+      });
+    }
+  ")
+```
+
+## Division II and III championship points
+
+The Division II scatterplot compares the champion and runner-up from each of the
+last 10 completed championships (2015–2025; the 2020 championship was canceled).
+Scores are from the [NCAA Division II championship history](https://www.ncaa.com/history/wrestling-men/d2).
+Hover over a point for the team, placement, and points.
+
+The Division III chart shows the top two scoring positions at each completed
+championship since 2015, including all teams tied for a position. The 2020 and
+2021 championships were canceled. Scores are from the
+[NCAA Division III championship history](https://www.ncaa.com/history/wrestling-men/d3).
+
+```{r}
+#| echo: false
+
+d2_d3_results <- tribble(
+  ~division, ~year, ~rank, ~team, ~points, ~coach,
+  "Division II", 2025, 1, "Nebraska-Kearney", 115, "Dalton Jensen",
+  "Division II", 2025, 2, "Augustana (SD)", 63, "Jason Reitmeier",
+  "Division II", 2025, 3, "St. Cloud State", 57.5, "Steve Costanzo",
+  "Division II", 2025, 4, "Lander", 56, "R.C. LaHaye",
+  "Division II", 2025, 5, "Central Oklahoma", 55.5, "Todd Steidley",
+  "Division II", 2025, 6, "University of Mary", 51, "Adam Aho",
+  "Division II", 2025, 7, "Central Missouri", 43, "Cody Garcia",
+  "Division II", 2025, 8, "Kutztown", 42.5, "Not verified",
+  "Division II", 2025, 9, "Maryville (MO)", 39, "Not verified",
+  "Division II", 2025, 10, "West Liberty", 38.5, "Danny Irwin",
+  "Division III", 2025, 1, "JWU (Providence)", 83.5, "Lonnie Morris",
+  "Division III", 2025, 2, "Wartburg", 83.5, "Eric Keller",
+  "Division III", 2025, 3, "Augsburg", 74, "Tony Valek",
+  "Division III", 2025, 4, "Baldwin Wallace", 69, "Not verified",
+  "Division III", 2025, 5, "Wisconsin-La Crosse", 65, "Dave Malecek",
+  "Division III", 2025, 6, "Coe", 60, "Not verified",
+  "Division III", 2025, 6, "North Central (IL)", 60, "Not verified",
+  "Division III", 2025, 8, "Alvernia", 58, "Kriss Bellanca",
+  "Division III", 2025, 9, "Coast Guard", 40.5, "Kevin A. Bratland",
+  "Division III", 2025, 9, "Wisconsin-Eau Claire", 40.5, "Not verified"
+)
+
+d2_history <- tribble(
+  ~year, ~rank, ~team, ~points,
+  2015, 1, "St. Cloud State", 84.5,
+  2015, 2, "Nebraska-Kearney", 76.5,
+  2016, 1, "St. Cloud State", 90,
+  2016, 2, "Notre Dame (Ohio)", 82,
+  2017, 1, "Notre Dame (Ohio)", 103.5,
+  2017, 2, "St. Cloud State", 67,
+  2018, 1, "St. Cloud State", 91.5,
+  2018, 2, "Notre Dame (Ohio)", 84,
+  2019, 1, "St. Cloud State", 95.5,
+  2019, 2, "Wheeling Jesuit", 87.5,
+  2021, 1, "St. Cloud State", 107,
+  2021, 2, "Nebraska-Kearney", 105.5,
+  2022, 1, "Nebraska-Kearney", 127,
+  2022, 2, "Central Oklahoma", 86,
+  2023, 1, "Central Oklahoma", 121,
+  2023, 2, "Lander", 78,
+  2024, 1, "Central Oklahoma", 110,
+  2024, 2, "Lander", 86.5,
+  2025, 1, "Nebraska-Kearney", 115,
+  2025, 2, "Augustana (SD)", 63
+)
+
+d3_history <- tribble(
+  ~year, ~rank, ~team, ~points, ~coach,
+  2015, 1, "Augsburg", 100, "Jim Moulsoff",
+  2015, 2, "Wartburg", 89.5, "Eric Keller",
+  2016, 1, "Wartburg", 129.5, "Eric Keller",
+  2016, 2, "Messiah College", 100, "Not verified",
+  2017, 1, "Wartburg", 129.5, "Eric Keller",
+  2017, 2, "Augsburg", 79, "Jim Moulsoff",
+  2018, 1, "Wartburg", 136.5, "Eric Keller",
+  2018, 2, "Augsburg", 82, "Jim Moulsoff",
+  2019, 1, "Augsburg", 130, "Jim Moulsoff",
+  2019, 2, "Loras (Iowa)", 66, "Not verified",
+  2022, 1, "Wartburg", 79, "Eric Keller",
+  2022, 2, "Wabash", 78, "Not verified",
+  2023, 1, "Augsburg", 101, "Tony Valek",
+  2023, 2, "Wartburg", 66.5, "Eric Keller",
+  2024, 1, "Augsburg", 95, "Tony Valek",
+  2024, 2, "Wartburg", 87.5, "Eric Keller",
+  2025, 1, "Wartburg", 83.5, "Eric Keller",
+  2025, 1, "JWU (Providence)", 83.5, "Lonnie Morris",
+  2025, 2, "Augsburg", 74, "Tony Valek"
+)
+
+d2_chart <- d2_history |>
+  plot_ly(
+    x = ~year,
+    y = ~points,
+    color = ~team,
+    type = "scatter",
+    mode = "markers",
+    marker = list(size = 12, opacity = 0.85),
+    text = ~paste0("Rank ", rank, ": ", team),
+    hovertemplate = paste(
+      "<b>%{text}</b><br>",
+      "Year: %{x}<br>",
+      "Championship points: %{y}",
+      "<extra></extra>"
+    ),
+    showlegend = TRUE
+  )
+
+d3_chart <- d3_history |>
+  group_by(year, points) |>
+  mutate(plot_year = year + (row_number() - (n() + 1) / 2) * 0.12) |>
+  ungroup() |>
+  plot_ly(
+    x = ~plot_year,
+    y = ~points,
+    color = ~team,
+    type = "scatter",
+    mode = "markers+text",
+    marker = list(size = 11, opacity = 0.8),
+    text = ~team,
+    textposition = "top right",
+    customdata = ~year,
+    hovertemplate = paste(
+      "<b>%{text}</b><br>",
+      "Year: %{customdata}<br>",
+      "Championship points: %{y}",
+      "<extra></extra>"
+    ),
+    showlegend = FALSE
+  )
+
+d2_chart |>
+  layout(
+    title = "NCAA Division II championship points — top two teams (2015–2025)",
+    xaxis = list(
+      title = "Championship year",
+      tickmode = "array",
+      tickvals = c(2015:2019, 2021:2025),
+      range = c(2014.5, 2025.5)
+    ),
+    yaxis = list(title = "Championship points", rangemode = "tozero"),
+    legend = list(title = list(text = "Team")),
+    height = 650
+  )
+
+```
+
+```{r}
+#| echo: false
+
+d3_chart |>
+  layout(
+    title = "NCAA Division III championship points — top teams (2015–2025)",
+    xaxis = list(
+      title = "Championship year",
+      tickmode = "array",
+      tickvals = c(2015:2019, 2022:2025),
+      range = c(2014.5, 2025.5)
+    ),
+    yaxis = list(title = "Championship points"),
+    showlegend = FALSE,
+    height = 650
+  )
+```
