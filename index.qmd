@@ -1,6 +1,5 @@
 ---
 title: "Analysis Men's NCAA Wrestling"
-author: Angel Legrand
 format: html
 css: wrestling-background.css
 execute:
@@ -9,7 +8,7 @@ execute:
   warning: false
 ---
 
-I plan to make a website that gathers data from the NCAA website to help people find out more about the statistics of a team winning and takedown chances. 
+This website will explain to you a great majority of wrestling in the past few years. 
 
 ## Top 10 teams by year
 
@@ -266,12 +265,7 @@ team_results |>
 
 ## Wrestler wins and losses by weight
 
-Choose a championship year and weight class to compare every wrestler in the
-NCAA bracket by their season wins and losses. Click a point to view the
-wrestler's record and links to a bio search and the official bracket. The
-bracket data for 2022 and 2023–2025 are included; the 2020 tournament was
-canceled. The 2022 records are from the
-[official NCAA bracket PDF](https://www.ncaa.com/sites/default/files/public/files/2022-03/Brackets%20-%20Session%206.pdf).
+Compare season wins and losses across all 1,319 NCAA Division I tournament wrestlers from 2022 to 2025. Each point represents an official NCAA bracket participant, color-coded by weight class (click legend items to toggle). Click any point to view the wrestler's details and links to their bio and official bracket.
 
 ```{r}
 #| echo: false
@@ -281,83 +275,40 @@ canceled. The 2022 records are from the
 wrestler_records <- readr::read_csv(
   "ncaa_wrestler_records.csv",
   show_col_types = FALSE
-)
-
-years <- sort(unique(wrestler_records$year), decreasing = TRUE)
-weights <- sort(unique(wrestler_records$weight))
-default_year <- years[1]
-default_weight <- weights[1]
-wrestler_chart <- plot_ly()
-
-for (current_year in years) {
-  for (current_weight in weights) {
-    weight_data <- wrestler_records |>
-      filter(year == current_year, weight == current_weight) |>
-      mutate(
-        bio_url = paste0(
-          "https://en.wikipedia.org/w/index.php?search=",
-          utils::URLencode(wrestler, reserved = TRUE)
-        ),
-        bio = paste0(
-          wrestler, " (", school_code, ") — ", current_year, ", ",
-          current_weight, " lb. Season record: ", wins, "-", losses, "."
-        ),
-        click_data = paste(bio, bio_url, source, sep = "|")
-      )
-
-    wrestler_chart <- wrestler_chart |>
-      add_trace(
-        x = weight_data$wins,
-        y = weight_data$losses,
-        type = "scatter",
-        mode = "markers",
-        text = weight_data$wrestler,
-        customdata = weight_data$click_data,
-        marker = list(size = 9, color = "#2c7fb8", opacity = 0.75),
-        hovertemplate = paste(
-          "<b>%{text}</b> (", current_weight, " lb)<br>",
-          "Season record: %{x} wins, %{y} losses<br>",
-          "Click for wrestler details",
-          "<extra></extra>"
-        ),
-        name = paste(current_year, current_weight, "lb"),
-        visible = current_year == default_year && current_weight == default_weight,
-        showlegend = FALSE
-      )
-  }
-}
-
-htmltools::tags$div(
-  class = "wrestler-chart-controls",
-  htmltools::tags$label(
-    `for` = "wrestler-year",
-    htmltools::tags$span("Championship year"),
-    htmltools::tags$select(
-      id = "wrestler-year",
-      lapply(years, \(year) {
-        htmltools::tags$option(
-          value = year,
-          selected = year == default_year,
-          year
-        )
-      })
-    )
-  ),
-  htmltools::tags$span(" "),
-  htmltools::tags$label(
-    `for` = "wrestler-weight",
-    htmltools::tags$span("Weight class"),
-    htmltools::tags$select(
-      id = "wrestler-weight",
-      lapply(weights, \(weight) {
-        htmltools::tags$option(
-          value = weight,
-          selected = weight == default_weight,
-          paste(weight, "lb")
-        )
-      })
-    )
+) |>
+  mutate(
+    weight_label = paste0(weight, " lb"),
+    wins_jitter = jitter(wins, amount = 0.25),
+    losses_jitter = jitter(losses, amount = 0.25),
+    hover_text = paste0(
+      "<b>", wrestler, "</b> (", school_code, ")<br>",
+      year, " · ", weight, " lb<br>",
+      "Record: ", wins, "-", losses
+    ),
+    bio_url = paste0(
+      "https://en.wikipedia.org/w/index.php?search=",
+      utils::URLencode(wrestler, reserved = TRUE)
+    ),
+    bio = paste0(
+      wrestler, " (", school_code, ") — ", year, ", ",
+      weight, " lb. Season record: ", wins, "-", losses, "."
+    ),
+    click_data = paste(bio, bio_url, source, sep = "|")
   )
+
+wrestler_chart <- plot_ly(
+  data = wrestler_records,
+  x = ~wins_jitter,
+  y = ~losses_jitter,
+  color = ~factor(weight_label, levels = paste0(sort(unique(weight)), " lb")),
+  colors = "Spectral",
+  type = "scatter",
+  mode = "markers",
+  text = ~hover_text,
+  customdata = ~click_data,
+  marker = list(size = 7, opacity = 0.75),
+  hovertemplate = "%{text}<br><i>Click for details</i><extra></extra>",
+  height = 650
 )
 
 htmltools::tags$div(
@@ -387,37 +338,25 @@ htmltools::tags$div(
 
 wrestler_chart |>
   layout(
-    title = paste0("NCAA participants — ", default_year, ", ", default_weight, " lb"),
+    title = list(text = "NCAA Division I Tournament Wrestlers (2022–2025; N = 1,319)"),
     xaxis = list(title = "Season wins", rangemode = "tozero"),
     yaxis = list(title = "Season losses", rangemode = "tozero"),
-    height = 600
+    legend = list(title = list(text = "<b>Weight class</b>"))
   ) |>
   htmlwidgets::onRender("
     function(el, x) {
-      var yearSelect = document.getElementById('wrestler-year');
-      var weightSelect = document.getElementById('wrestler-weight');
-      function updateChart() {
-        var selectedYear = yearSelect.value;
-        var selectedWeight = weightSelect.value;
-        var visibility = el.data.map(function(trace) {
-          return trace.name === selectedYear + ' ' + selectedWeight + ' lb';
-        });
-        Plotly.restyle(el, {visible: visibility});
-        Plotly.relayout(el, {
-          'title.text': 'NCAA participants — ' + selectedYear + ', ' + selectedWeight + ' lb'
-        });
-      }
-      yearSelect.addEventListener('change', updateChart);
-      weightSelect.addEventListener('change', updateChart);
       el.on('plotly_click', function(eventData) {
         var point = eventData.points[0];
-        var details = point.data.customdata[point.pointNumber].split('|');
-        var panel = document.getElementById('wrestler-bio');
-        document.getElementById('wrestler-bio-title').textContent = point.text;
-        document.getElementById('wrestler-bio-details').textContent = details[0];
-        document.getElementById('wrestler-bio-link').href = details[1];
-        document.getElementById('wrestler-bio-source').href = details[2];
-        panel.style.display = 'block';
+        var custom = point.customdata || (point.data.customdata && point.data.customdata[point.pointNumber]);
+        if (custom) {
+          var details = custom.split('|');
+          var panel = document.getElementById('wrestler-bio');
+          document.getElementById('wrestler-bio-title').textContent = details[0];
+          document.getElementById('wrestler-bio-details').textContent = details[0];
+          document.getElementById('wrestler-bio-link').href = details[1];
+          document.getElementById('wrestler-bio-source').href = details[2];
+          panel.style.display = 'block';
+        }
       });
     }
   ")

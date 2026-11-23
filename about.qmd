@@ -7,6 +7,10 @@ css: wrestling-background.css
 
 Email Address: legrand1angel@gmail.com
 
+[Github profile](https://github.com/Angel-30code)
+
+[Repositories](https://github.com/Angel-30code)
+
 This site explores NCAA Division I men's wrestling team performance and championship trends.
 
 The project brings together team standings, championship points, and historical results to make it easier to compare programs across seasons.
