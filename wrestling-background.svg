@@ -1,83 +1,94 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1100" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%">
   <defs>
-    <linearGradient id="arena" x2="0" y2="1">
-      <stop stop-color="#081425"/>
-      <stop offset=".62" stop-color="#18324d"/>
-      <stop offset="1" stop-color="#08111f"/>
-    </linearGradient>
-    <linearGradient id="mat" x1="370" y1="710" x2="1450" y2="1060">
-      <stop stop-color="#e5a84f"/>
-      <stop offset=".55" stop-color="#c4783e"/>
-      <stop offset="1" stop-color="#8f442f"/>
-    </linearGradient>
-    <radialGradient id="spotlight">
-      <stop stop-color="#fff5c8" stop-opacity=".85"/>
-      <stop offset=".28" stop-color="#ffcf72" stop-opacity=".22"/>
-      <stop offset="1" stop-color="#ffcf72" stop-opacity="0"/>
+    <!-- Arena ambient lighting -->
+    <radialGradient id="arenaLight" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#142c4c"/>
+      <stop offset="40%" stop-color="#0b1b30"/>
+      <stop offset="85%" stop-color="#050d18"/>
+      <stop offset="100%" stop-color="#02060b"/>
     </radialGradient>
-    <linearGradient id="blueSinglet" x1="710" y1="470" x2="1010" y2="820">
-      <stop stop-color="#47b8eb"/>
-      <stop offset="1" stop-color="#12609a"/>
+
+    <!-- Overhead arena spotlight on mat -->
+    <radialGradient id="matSpotlight" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#4da0ff" stop-opacity="0.32"/>
+      <stop offset="50%" stop-color="#1d64b4" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#091b30" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Vibrant Royal Blue Mat Surface -->
+    <linearGradient id="matSurface" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#154a8a"/>
+      <stop offset="50%" stop-color="#1a5bb0"/>
+      <stop offset="100%" stop-color="#0f396e"/>
     </linearGradient>
-    <linearGradient id="redSinglet" x1="1010" y1="420" x2="1280" y2="810">
-      <stop stop-color="#ff765f"/>
-      <stop offset="1" stop-color="#bd302f"/>
+
+    <!-- Mat vinyl highlight -->
+    <linearGradient id="matSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="25%" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.25"/>
     </linearGradient>
-    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="30"/>
+
+    <!-- Inner gold circle gradient -->
+    <radialGradient id="centerCircleGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="70%" stop-color="#f59e0b" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.35"/>
+    </radialGradient>
+
+    <!-- Drop shadow for mat elevation -->
+    <filter id="matShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="18" stdDeviation="30" flood-color="#000000" flood-opacity="0.8"/>
+    </filter>
+
+    <!-- Soft glow for boundary lines -->
+    <filter id="lineGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
   </defs>
 
-  <path fill="url(#arena)" d="M0 0h1800v1100H0z"/>
-  <ellipse cx="1040" cy="275" rx="760" ry="420" fill="url(#spotlight)"/>
-  <path d="M190 0 610 720M1610 0l-420 720" stroke="#f8db9b" stroke-opacity=".08" stroke-width="150"/>
-  <path d="M0 560c260-165 510-245 900-245s640 80 900 245v240H0V560Z" fill="#101e30"/>
+  <!-- Dark Arena Background -->
+  <rect width="1920" height="1080" fill="url(#arenaLight)"/>
 
-  <g fill="#b9c9d8" opacity=".48">
-    <circle cx="92" cy="535" r="5"/><circle cx="135" cy="576" r="4"/>
-    <circle cx="188" cy="518" r="6"/><circle cx="242" cy="574" r="4"/>
-    <circle cx="305" cy="535" r="5"/><circle cx="365" cy="580" r="4"/>
-    <circle cx="430" cy="520" r="5"/><circle cx="493" cy="567" r="4"/>
-    <circle cx="553" cy="535" r="5"/><circle cx="615" cy="580" r="4"/>
-    <circle cx="680" cy="518" r="5"/><circle cx="745" cy="570" r="4"/>
-    <circle cx="810" cy="528" r="5"/><circle cx="875" cy="574" r="4"/>
-    <circle cx="940" cy="517" r="5"/><circle cx="1005" cy="574" r="4"/>
-    <circle cx="1070" cy="526" r="5"/><circle cx="1135" cy="572" r="4"/>
-    <circle cx="1200" cy="518" r="5"/><circle cx="1265" cy="575" r="4"/>
-    <circle cx="1330" cy="530" r="5"/><circle cx="1395" cy="574" r="4"/>
-    <circle cx="1460" cy="515" r="5"/><circle cx="1525" cy="570" r="4"/>
-    <circle cx="1590" cy="526" r="5"/><circle cx="1655" cy="574" r="4"/>
-    <circle cx="1710" cy="530" r="5"/>
-  </g>
-  <path d="M45 642c208-118 488-178 855-178s647 60 855 178" stroke="#d7e4f0" stroke-opacity=".18" stroke-width="3"/>
+  <!-- Stadium Floodlights Glow Effect -->
+  <circle cx="960" cy="540" r="850" fill="url(#matSpotlight)"/>
 
-  <ellipse cx="1065" cy="940" rx="760" ry="272" fill="#050b13" opacity=".48" filter="url(#softGlow)"/>
-  <path d="M174 1030c76-225 417-391 891-391s815 166 891 391v70H174v-70Z" fill="url(#mat)"/>
-  <ellipse cx="1065" cy="918" rx="695" ry="205" stroke="#ffe0a2" stroke-opacity=".75" stroke-width="8"/>
-  <ellipse cx="1065" cy="918" rx="454" ry="134" stroke="#ffe0a2" stroke-opacity=".48" stroke-width="5"/>
-  <path d="M1065 713v410" stroke="#ffe0a2" stroke-opacity=".38" stroke-width="5"/>
+  <!-- Competition Mat Container -->
+  <g filter="url(#matShadow)">
+    <!-- Square Wrestling Mat (Vibrant Royal Blue) -->
+    <rect x="360" y="40" width="1200" height="1000" rx="20" fill="url(#matSurface)" stroke="#2563eb" stroke-width="3"/>
+    <rect x="360" y="40" width="1200" height="1000" rx="20" fill="url(#matSheen)"/>
 
-  <g stroke="#07111d" stroke-width="31" stroke-linecap="round" stroke-linejoin="round">
-    <path d="m838 700-151 114-117 124"/>
-    <path d="m895 756-85 146-112 51"/>
-    <path d="m1041 682 116 116 155 57"/>
-  </g>
-  <g fill="#07111d">
-    <path d="M722 615c8-69 70-111 137-91 46 14 67 62 47 105-16 34-56 58-105 52-55-7-84-30-79-66Z"/>
-    <path d="M790 687c31-47 86-69 144-62l137 17c49 6 84 47 79 95l-12 103c-4 35-35 60-70 56l-93-11-75 79c-29 31-76 38-113 17l-74-43c-28-16-37-52-21-80l47-81-4-90c-2-36 19-72 55-86Z"/>
-    <path d="M1202 725c48 5 88-29 91-77 3-44-31-80-75-83-49-4-88 30-90 77-2 43 31 79 74 83Z"/>
-    <path d="M1103 735c30-38 78-59 127-50l82 15c48 9 78 57 64 104l-28 92c-9 28-37 44-65 37l-84-22-71 83c-23 27-63 35-94 18l-67-36c-28-15-39-49-26-78l39-83 5-44c3-51 32-89 68-96Z"/>
-  </g>
+    <!-- Mat section tape seams (authentic foam section joins) -->
+    <line x1="660" y1="40" x2="660" y2="1040" stroke="#0e2a4f" stroke-width="4" stroke-opacity="0.45"/>
+    <line x1="960" y1="40" x2="960" y2="1040" stroke="#0e2a4f" stroke-width="4" stroke-opacity="0.45"/>
+    <line x1="1260" y1="40" x2="1260" y2="1040" stroke="#0e2a4f" stroke-width="4" stroke-opacity="0.45"/>
 
-  <path d="M772 684c34-28 76-37 123-33l130 16c37 5 64 36 61 74l-7 71-114-20-64 71c-22 24-57 29-85 13l-48-28 34-58-30-75Z" fill="url(#blueSinglet)"/>
-  <path d="M1118 737c27-24 64-35 101-28l83 15c35 7 56 41 46 75l-18 59-89-23-54 62c-18 21-48 27-74 13l-46-25 34-62-8-35c-5-21 4-43 25-56Z" fill="url(#redSinglet)"/>
-  <path d="M850 583c10-38 47-61 85-52 36 8 55 42 46 76-10 37-45 60-82 51-38-9-59-38-49-75Z" fill="#d69668"/>
-  <path d="M1195 591c10-33 42-53 76-46 33 8 51 39 43 70-8 33-39 53-73 46-34-7-54-36-46-70Z" fill="#bc795d"/>
-  <path d="M852 579c21-50 86-70 129-35l19 31-42 13-27-15-33 28-47-2Z" fill="#101d2d"/>
-  <path d="M1191 585c21-43 75-58 112-28l19 28-36 11-27-13-31 24-42-2Z" fill="#101d2d"/>
+    <!-- Red Corner Protection Zone (Top-Left) -->
+    <path d="M360 40 L520 40 L360 200 Z" fill="#dc2626" fill-opacity="0.85"/>
+    <!-- Green Corner Protection Zone (Bottom-Right) -->
+    <path d="M1560 880 L1560 1040 L1400 1040 Z" fill="#16a34a" fill-opacity="0.85"/>
 
-  <g fill="#fff1cd">
-    <circle cx="272" cy="260" r="5"/><circle cx="1518" cy="300" r="5"/>
-    <circle cx="455" cy="374" r="4"/><circle cx="1374" cy="421" r="4"/>
+    <!-- Outer Protection Boundary (10-meter / 28-foot contest area) -->
+    <!-- Vivid Gold / Amber Boundary Ring -->
+    <circle cx="960" cy="540" r="410" fill="none" stroke="#f59e0b" stroke-width="14" filter="url(#lineGlow)"/>
+    <circle cx="960" cy="540" r="410" fill="none" stroke="#fef08a" stroke-width="4"/>
+
+    <!-- Inner Circle Zone (10-foot inner circle) -->
+    <circle cx="960" cy="540" r="150" fill="url(#centerCircleGlow)"/>
+    <circle cx="960" cy="540" r="150" fill="none" stroke="#f59e0b" stroke-width="10" stroke-dasharray="14 8" stroke-opacity="0.9"/>
+    <circle cx="960" cy="540" r="150" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.8"/>
+
+    <!-- Center Referee Starting Lines (Red & Green lines, 10" apart, 3' long) -->
+    <!-- Red Wrestler Start Line -->
+    <line x1="915" y1="510" x2="1005" y2="510" stroke="#ef4444" stroke-width="8" stroke-linecap="round"/>
+    <!-- Green Wrestler Start Line -->
+    <line x1="915" y1="570" x2="1005" y2="570" stroke="#22c55e" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- Center Point Dot -->
+    <circle cx="960" cy="540" r="5" fill="#f8fafc"/>
   </g>
 </svg>

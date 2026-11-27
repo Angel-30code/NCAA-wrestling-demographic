@@ -1,18 +1,26 @@
 body {
-  background:
-    linear-gradient(rgba(255, 246, 224, 0.12), rgba(255, 246, 224, 0.12)),
-    url("wrestling-background.svg") center / min(100vw, 1800px) auto fixed;
+  background: #050d1a url("wrestling-background.svg") center center / cover no-repeat fixed;
   color: #111827;
+  min-height: 100vh;
+}
+
+.navbar {
+  background: rgba(8, 20, 37, 0.94) !important;
+  backdrop-filter: blur(8px);
+  border-bottom: 2px solid #f59e0b;
 }
 
 #quarto-content {
   background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #111827;
-  box-shadow: 0 12px 40px rgba(7, 17, 31, 0.32);
-  border: 1px solid rgba(17, 24, 39, 0.08);
+  box-shadow: 0 16px 45px rgba(2, 8, 18, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 0.75rem;
+  margin-top: 1.5rem;
   margin-bottom: 2rem;
-  padding: 1.5rem;
+  padding: 2rem;
 }
 
 #quarto-content,
